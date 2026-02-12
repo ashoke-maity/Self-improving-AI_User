@@ -1,218 +1,169 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect } from 'react';
+import Sidebar from '../components/Sidebar';
 
 function Home() {
-  const [messages, setMessages] = useState([])
-  const [inputValue, setInputValue] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const messagesEndRef = useRef(null)
-  const inputRef = useRef(null)
+  const [messages, setMessages] = useState([
+    { id: 1, text: "Hello! I'm Nexus AI. How can I help you today?", sender: 'ai' }
+  ]);
+  const [input, setInput] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   useEffect(() => {
-    scrollToBottom()
-  }, [messages])
+    scrollToBottom();
+  }, [messages, isTyping]);
 
   const handleSend = async (e) => {
-    e.preventDefault()
-    if (!inputValue.trim() || isLoading) return
+    e.preventDefault();
+    if (!input.trim()) return;
 
-    const userMessage = {
-      id: messages.length + 1,
-      text: inputValue,
-      sender: 'user',
-      timestamp: new Date()
-    }
+    const userMessage = { id: Date.now(), text: input, sender: 'user' };
+    setMessages(prev => [...prev, userMessage]);
+    setInput('');
+    setIsTyping(true);
 
-    setMessages(prev => [...prev, userMessage])
-    setInputValue('')
-    setIsLoading(true)
-
-    // Reset height slightly to allow recalc
-    if (inputRef.current) {
-      inputRef.current.style.height = 'auto';
-    }
-
-    // Simulate AI response (replace with actual API call)
+    // Simulate AI response
     setTimeout(() => {
-      const aiMessage = {
-        id: messages.length + 2,
-        text: "I understand your message. This is a simulated response. Connect me to your AI API to get real responses!",
-        sender: 'ai',
-        timestamp: new Date()
-      }
-      setMessages(prev => [...prev, aiMessage])
-      setIsLoading(false)
-    }, 1000)
-  }
-
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      handleSend(e)
-    }
-  }
-
-  // Auto-resize textarea
-  useEffect(() => {
-    if (inputRef.current) {
-      inputRef.current.style.height = 'auto'
-      inputRef.current.style.height = `${Math.min(inputRef.current.scrollHeight, 200)}px`
-    }
-  }, [inputValue])
-
-  const PromptForm = ({ centered = false }) => (
-    <form onSubmit={handleSend} className="relative w-full">
-      <div className={`relative group bg-[#2f2f2f] border border-white/5 rounded-[26px] p-2 focus-within:ring-1 focus-within:ring-white/10 focus-within:border-white/20 transition-all duration-300 ${centered ? 'shadow-2xl' : 'shadow-xl'}`}>
-
-        <div className="flex items-end gap-2">
-          <textarea
-            ref={inputRef}
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Message AI..."
-            className="w-full bg-transparent border-0 text-white placeholder-neutral-400 text-[15px] resize-none focus:ring-0 py-3 px-4 min-h-[44px] max-h-[200px]"
-            style={{
-              scrollbarWidth: 'none',
-              msOverflowStyle: 'none'
-            }}
-            rows="1"
-            autoFocus={centered}
-          />
-
-          <button
-            type="submit"
-            disabled={!inputValue.trim() || isLoading}
-            className={`flex-none w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 mb-2 mr-2 ${inputValue.trim() || isLoading
-                ? 'bg-white text-black hover:bg-neutral-200 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95'
-                : 'bg-[#444] text-[#888] cursor-not-allowed'
-              }`}
-          >
-            {isLoading ? (
-              <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-            ) : (
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                className={inputValue.trim() ? "translate-x-0.5" : ""}
-              >
-                <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            )}
-          </button>
-        </div>
-      </div>
-      <p className="text-[12px] text-neutral-500 mt-3 text-center font-medium tracking-wide">
-        AI platform can make mistakes. Consider checking important information.
-      </p>
-    </form>
-  )
+      const aiResponse = {
+        id: Date.now() + 1,
+        text: "I'm a simulated AI response. I can help you with coding, writing, or just chatting! This is a demo interface.",
+        sender: 'ai'
+      };
+      setMessages(prev => [...prev, aiResponse]);
+      setIsTyping(false);
+    }, 1500);
+  };
 
   return (
-    <div className="flex flex-col h-screen bg-black text-white font-sans overflow-hidden">
-      {/* Header - Only show if active chat */}
-      {messages.length > 0 && (
-        <header className="flex-none bg-black/80 backdrop-blur-md border-b border-white/5 z-10">
-          <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gradient-to-tr from-white to-gray-400 rounded-full flex items-center justify-center shadow-lg shadow-white/10">
-                <span className="text-black font-bold text-sm">AI</span>
-              </div>
-              <div>
-                <h1 className="text-base font-semibold text-white tracking-wide">AI Assistant</h1>
-                <p className="text-[10px] text-gray-400 font-medium tracking-wider uppercase">Beta Preview</p>
-              </div>
-            </div>
+    <div className="flex h-screen bg-gray-950 text-white font-sans overflow-hidden">
+      <Sidebar />
+
+      <main className="flex-1 flex flex-col relative bg-gray-950 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-900 via-gray-950 to-gray-950">
+        {/* Header */}
+        <header className="h-16 border-b border-gray-800 flex items-center justify-between px-6 bg-gray-900/50 backdrop-blur-md z-10 sticky top-0">
+          <div className="flex items-center gap-2">
+            <span className="text-gray-400 text-sm">Model:</span>
+            <button className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-800 hover:bg-gray-700 text-sm font-medium transition-colors">
+              <span>GPT-4 Turbo</span>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3 h-3 text-gray-400">
+                <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+              </svg>
+            </button>
+          </div>
+          <div className="flex items-center gap-4">
+            <button className="p-2 text-gray-400 hover:text-white transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+              </svg>
+            </button>
           </div>
         </header>
-      )}
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-y-auto scroll-smooth custom-scrollbar relative flex flex-col">
-        {messages.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center p-4 w-full max-w-3xl mx-auto">
-            <div className="mb-8 text-center">
-              <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-white/20">
-                <span className="text-black font-bold text-2xl">AI</span>
-              </div>
-              <h1 className="text-3xl font-semibold text-white tracking-tight mb-2">AI Beta Preview</h1>
-            </div>
-
-            <div className="w-full">
-              <PromptForm centered={true} />
-            </div>
-          </div>
-        ) : (
-          <div className="max-w-3xl mx-auto px-4 pt-8 pb-32 w-full">
-            <div className="space-y-8">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex gap-4 ${message.sender === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in group`}
-                >
-                  {message.sender === 'ai' && (
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#333] to-[#111] border border-white/10 flex items-center justify-center flex-shrink-0 mt-1 shadow-md">
-                      <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-                      </svg>
-                    </div>
-                  )}
-
-                  <div
-                    className={`max-w-[85%] rounded-2xl px-5 py-3.5 shadow-sm leading-relaxed text-[15px] ${message.sender === 'user'
-                        ? 'bg-[#2a2a2a] text-white rounded-br-sm'
-                        : 'bg-transparent text-gray-100'
-                      }`}
-                  >
-                    <div className="whitespace-pre-wrap break-words font-light tracking-wide">
-                      {message.text}
-                    </div>
-                    <div className={`text-[10px] mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${message.sender === 'user' ? 'text-gray-400 text-right' : 'text-gray-500'}`}>
-                      {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </div>
-                  </div>
-                </div>
-              ))}
-
-              {isLoading && (
-                <div className="flex gap-4 justify-start animate-fade-in">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#333] to-[#111] border border-white/10 flex items-center justify-center flex-shrink-0 mt-1">
-                    <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+        {/* Chat Area */}
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-transparent">
+          <div className="max-w-3xl mx-auto space-y-6">
+            {messages.map((msg) => (
+              <div
+                key={msg.id}
+                className={`flex gap-4 ${msg.sender === 'user' ? 'flex-row-reverse' : ''}`}
+              >
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${msg.sender === 'ai' ? 'bg-gradient-to-tr from-indigo-500 to-purple-600' : 'bg-gray-700'}`}>
+                  {msg.sender === 'ai' ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 text-white">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z" />
                     </svg>
-                  </div>
-                  <div className="bg-transparent text-white px-0 py-3">
-                    <div className="flex space-x-1.5 items-center h-full">
-                      <div className="w-1.5 h-1.5 bg-white/40 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                      <div className="w-1.5 h-1.5 bg-white/40 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                      <div className="w-1.5 h-1.5 bg-white/40 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-                    </div>
+                  ) : (
+                    <span className="text-xs font-bold text-white">U</span>
+                  )}
+                </div>
+
+                <div className={`flex flex-col max-w-[80%] ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}>
+                  <div className={`px-5 py-3 rounded-2xl text-sm leading-relaxed ${msg.sender === 'user'
+                    ? 'bg-blue-600/90 text-white rounded-tr-sm'
+                    : 'bg-gray-800 text-gray-100 rounded-tl-sm border border-gray-700/50'
+                    }`}>
+                    {msg.text}
                   </div>
                 </div>
-              )}
+              </div>
+            ))}
 
-              <div ref={messagesEndRef} />
-            </div>
-          </div>
-        )}
-      </main>
-
-      {/* Footer Prompt Area - Only show if active chat */}
-      {messages.length > 0 && (
-        <div className="fixed bottom-0 left-0 w-full bg-black pt-2 pb-6 z-20">
-          <div className="max-w-3xl mx-auto px-4">
-            <PromptForm centered={false} />
+            {isTyping && (
+              <div className="flex gap-4">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 text-white">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z" />
+                  </svg>
+                </div>
+                <div className="flex items-center gap-1 h-10 px-4 bg-gray-800 rounded-2xl rounded-tl-sm border border-gray-700/50">
+                  <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                  <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                  <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></span>
+                </div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
           </div>
         </div>
-      )}
+
+        {/* Input Area */}
+        <div className="p-4 bg-gray-900 border-t border-gray-800">
+          <div className="max-w-3xl mx-auto">
+            <form onSubmit={handleSend} className="relative flex items-end gap-2 bg-gray-800 rounded-xl p-2 border border-gray-700 focus-within:ring-2 focus-within:ring-purple-500/50 focus-within:border-purple-500 transition-all shadow-lg">
+              <button
+                type="button"
+                className="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors"
+                title="Attach file"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m18.375 12.739-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.112 2.13" />
+                </svg>
+              </button>
+
+              <textarea
+                value={input}
+                onChange={(e) => {
+                  setInput(e.target.value);
+                  e.target.style.height = 'auto';
+                  e.target.style.height = `${e.target.scrollHeight}px`;
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend(e);
+                  }
+                }}
+                placeholder="Message Nexus AI..."
+                className="w-full bg-transparent text-white placeholder-gray-400 text-sm resize-none focus:outline-none py-2.5 max-h-32 min-h-[44px] overflow-y-auto"
+                rows={1}
+                style={{ height: 'auto', minHeight: '44px' }}
+              />
+
+              <button
+                type="submit"
+                disabled={!input.trim() || isTyping}
+                className={`p-2 rounded-lg transition-all duration-200 ${input.trim()
+                  ? 'bg-purple-600 text-white hover:bg-purple-500 shadow-md shadow-purple-500/20'
+                  : 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                  }`}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                  <path d="M3.478 2.404a.75.75 0 0 0-.926.941l2.432 7.905H13.5a.75.75 0 0 1 0 1.5H4.984l-2.432 7.905a.75.75 0 0 0 .926.94 60.519 60.519 0 0 0 18.445-8.986.75.75 0 0 0 0-1.218A60.517 60.517 0 0 0 3.478 2.404Z" />
+                </svg>
+              </button>
+            </form>
+            <div className="text-center mt-2">
+              <span className="text-xs text-gray-500">Nexus AI can make mistakes. Consider checking important information.</span>
+            </div>
+          </div>
+        </div>
+      </main>
     </div>
-  )
+  );
 }
 
-export default Home
+export default Home;
