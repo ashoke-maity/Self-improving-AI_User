@@ -2,13 +2,21 @@ const dotenv = require('dotenv').config();
 const express = require('express');
 const connectDB = require('./configs/DB');
 connectDB();
-const userLogin = require('./routes/userRoutes');
+// USER IMPORTS
+const user = require('./routes/userRoutes');
+// ADMIN IMPORTS
+const admin = require('./routes/adminRoutes');
 const app = express();
 app.use(express.json());
 
+// users
 // login/register
-app.use('/self_improving_ai/user', userLogin); 
+app.use('/self_improving_ai/user', user); 
+
+// admins
+// admin login/register
+app.use(`${process.env.ADMIN_ROUTE}`, admin);
 
 app.listen(process.env.PORT, 
-    console.log(`Server has started on port ${process.env.PORT}`)
-);
+    console.log(`The server has started on ${process.env.PORT}`)
+)
